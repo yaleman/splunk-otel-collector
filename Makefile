@@ -123,6 +123,11 @@ gendependabot:
 		  echo "  - package-ecosystem: \"maven\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
 	done
 
+.PHONY: generate
+generate: install-tools
+	go generate -run "mdatagen" -x ./...
+
+
 .PHONY: tidy-all
 tidy-all:
 	$(MAKE) $(FOR_GROUP_TARGET) TARGET="tidy"
@@ -139,6 +144,7 @@ install-tools:
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
+	cd ./internal/tools && go install github.com/open-telemetry/opentelemetry-collector-contrib/cmd/mdatagen
 
 .PHONY: otelcol
 otelcol:
