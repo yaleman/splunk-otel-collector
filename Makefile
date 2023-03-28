@@ -139,38 +139,28 @@ install-tools:
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
-	cd ./internal/tools && go install github.com/open-telemetry/opentelemetry-collector-contrib/cmd/mdatagen
-
-.PHONY: generate
-generate: | install-tools
-	go generate ./...
 
 .PHONY: otelcol
-otelcol: generate | fmt
+otelcol:
+	go generate ./...
 	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
 	ln -sf otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol
 
 .PHONY: translatesfx
-translatesfx: generate | fmt
+translatesfx:
+	go generate ./...
 	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/translatesfx_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/translatesfx
 	ln -sf translatesfx_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/translatesfx
 
 .PHONY: migratecheckpoint
-migratecheckpoint: generate | fmt
+migratecheckpoint:
+	go generate ./...
 	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/migratecheckpoint
 	ln -sf migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/migratecheckpoint
 
 .PHONY: bundle.d
 bundle.d:
 	go generate -tags bundle.d ./...
-
-.PHONY: _generate-metrics
-_generate-metrics:
-	go generate -run "mdatagen" -x ./...
-
-.PHONY: generate-metrics
-generate-metrics: install-tools _generate-metrics fmt
-
 
 .PHONY: add-tag
 add-tag:
