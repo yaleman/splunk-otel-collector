@@ -92,14 +92,13 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/multierr"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver"
-
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
 	//lint:ignore SA1019 We will replace the exporter in future versions
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/pulsarexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
