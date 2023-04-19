@@ -3,3 +3,5 @@
 3. more testing
 4. defer Unlock?
 5. configurable suffixes and labels
+6. what about the cmp in config_test is failing why empty rawrr what control char exists in file?
+    1. does this mean i need a hex editor or differ or some sort of think to make the chars pop from invalid

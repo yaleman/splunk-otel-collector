@@ -43,12 +43,12 @@ type simplePrometheusWriteReceiver struct {
 	sync.Mutex
 }
 
-// New creates the PrometheusRemoteWrite receiver with the given parameters.
-func New(
+// newPrometheusRemoteWriteReceiver creates the PrometheusRemoteWrite receiver with the given parameters.
+func newPrometheusRemoteWriteReceiver(
 	settings receiver.CreateSettings,
 	config *Config,
 	nextConsumer consumer.Metrics,
-) (receiver.Metrics, error) {
+) (*simplePrometheusWriteReceiver, error) {
 	if nextConsumer == nil {
 		return nil, component.ErrNilNextConsumer
 	}

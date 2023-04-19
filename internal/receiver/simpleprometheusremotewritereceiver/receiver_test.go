@@ -51,13 +51,12 @@ func TestHappy(t *testing.T) {
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
 	mockReporter := prw.NewMockReporter(len(sampleNoMdMetrics) + len(sampleMdMetrics))
-	receiver, err := New(mockSettings, cfg, mockConsumer)
-	prwReceiver := receiver.(*simplePrometheusWriteReceiver)
-	prwReceiver.reporter = mockReporter
+	receiver, err := newPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
+	receiver.reporter = mockReporter
 
 	assert.Nil(t, err)
-	require.NotNil(t, prwReceiver)
-	require.Nil(t, prwReceiver.Start(ctx, nopHost))
+	require.NotNil(t, receiver)
+	require.Nil(t, receiver.Start(ctx, nopHost))
 
 	// Send some metrics
 	client, err := transport.NewMockPrwClient(
@@ -83,7 +82,7 @@ func TestHappy(t *testing.T) {
 		assert.Nil(t, err, "failed to write %d reason %s", index, err)
 	}
 
-	require.Nil(t, prwReceiver.Shutdown(ctx))
+	require.Nil(t, receiver.Shutdown(ctx))
 
 	require.Nil(t, mockReporter.WaitAllOnMetricsProcessedCalls(30*time.Second))
 

@@ -24,6 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/otelcol"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/prw"
@@ -38,7 +40,7 @@ func TestFactory(t *testing.T) {
 	cfg := createDefaultConfig().(*Config)
 	freePort, err := transport.GetFreePort()
 	require.Nil(t, err)
-
+	assert.Nil(t, componenttest.CheckConfigStruct(cfg))
 	cfg.ListenAddr.Endpoint = fmt.Sprintf("localhost:%d", freePort)
 	cfg.ListenPath = "/metrics"
 
@@ -46,9 +48,8 @@ func TestFactory(t *testing.T) {
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
 	mockReporter := prw.NewMockReporter(0)
-	receiver, err := New(mockSettings, cfg, mockConsumer)
-	prwReceiver := receiver.(*simplePrometheusWriteReceiver)
-	prwReceiver.reporter = mockReporter
+	receiver, err := newPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
+	receiver.reporter = mockReporter
 
 	assert.Nil(t, err)
 	require.NotNil(t, receiver)
@@ -56,4 +57,24 @@ func TestFactory(t *testing.T) {
 
 	require.Nil(t, receiver.Shutdown(ctx))
 
+}
+
+func TestNewFactory(t *testing.T) {
+	fact := NewFactory()
+	assert.NotNil(t, fact)
+	assert.NotEmpty(t, fact.Type())
+	assert.NotEmpty(t, fact.CreateDefaultConfig())
+}
+
+func TestFactoryOtelIntegration(t *testing.T) {
+	cfg := NewFactory().CreateDefaultConfig()
+	require.NotNil(t, cfg)
+	factory, err := receiver.MakeFactoryMap(NewFactory())
+	factories := otelcol.Factories{Receivers: factory}
+	require.Nil(t, err)
+	parsedFactory := factories.Receivers[typeString]
+	require.NotEmpty(t, parsedFactory)
+	t.Logf("%s", parsedFactory)
+	assert.EqualValues(t, parsedFactory.Type(), typeString)
+	assert.EqualValues(t, 3, parsedFactory.MetricsReceiverStability())
 }

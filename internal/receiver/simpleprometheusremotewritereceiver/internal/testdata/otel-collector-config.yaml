@@ -1,15 +1,10 @@
 receivers:
-#  hostmetrics:
-#
   simpleprometheusremotewrite:
     endpoint: "0.0.0.0:54090"
     transport: "tcp"
     path: "/metrics"
-    timeout: "10s"
+    timeout: "5s"
     buffer_size: 100
-extensions:
-  health_check:
-    endpoint: "0.0.0.0:8888"
 processors:
   batch:
 exporters:
