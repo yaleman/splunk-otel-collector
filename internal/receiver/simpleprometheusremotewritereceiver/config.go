@@ -37,7 +37,7 @@ type Config struct {
 	ListenPath    string            `mapstructure:"path"`
 	Timeout       time.Duration     `mapstructure:"timeout"`
 	BufferSize    int               `mapstructure:"buffer_size"` // Channel buffer size, defaults to blocking each request until processed
-	CacheCapacity uint              `mapstructure:"cache_size"`
+	CacheCapacity int               `mapstructure:"cache_size"`
 }
 
 func (c *Config) Validate() error {

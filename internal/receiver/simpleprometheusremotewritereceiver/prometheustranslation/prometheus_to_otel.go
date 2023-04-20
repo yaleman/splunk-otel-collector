@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
-	tools2 "github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/tools"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/tools"
 )
 
 func (prwParser *PrometheusRemoteOtelParser) FromPrometheusWriteRequestMetrics(ctx context.Context, request *prompb.WriteRequest) (pmetric.Metrics, error) {
@@ -52,18 +52,17 @@ type MetricData struct {
 	Exemplars      *[]prompb.Exemplar
 	Histograms     *[]prompb.Histogram
 	MetricMetadata prompb.MetricMetadata
-	FromMd         bool
 }
 
 type PrometheusRemoteOtelParser struct {
-	metricTypesCache *tools2.PrometheusMetricTypeCache
+	metricTypesCache *tools.PrometheusMetricTypeCache
 	Reporter         transport.Reporter
 	context.Context
 }
 
 func NewPrwOtelParser(ctx context.Context, reporter transport.Reporter, capacity int) (*PrometheusRemoteOtelParser, error) {
 	return &PrometheusRemoteOtelParser{
-		metricTypesCache: tools2.NewPrometheusMetricTypeCache(ctx, capacity),
+		metricTypesCache: tools.NewPrometheusMetricTypeCache(ctx, capacity),
 		Reporter:         reporter,
 		Context:          ctx,
 	}, nil
@@ -83,11 +82,11 @@ func (prwParser *PrometheusRemoteOtelParser) partitionWriteRequest(_ context.Con
 
 	indexToMetricNameMapping := make([]MetricData, len(writeReq.Timeseries))
 	for index, ts := range writeReq.Timeseries {
-		metricName, filteredLabels := tools2.GetMetricNameAndFilteredLabels(ts.Labels)
-		metricFamilyName := tools2.GetBaseMetricFamilyName(metricName)
+		metricName, filteredLabels := tools.GetMetricNameAndFilteredLabels(ts.Labels)
+		metricFamilyName := tools.GetBaseMetricFamilyName(metricName)
 
 		// Determine metric type using cache if available, otherwise use label heuristics
-		metricType := tools2.GuessMetricTypeByLabels(ts.Labels)
+		metricType := tools.GuessMetricTypeByLabels(ts.Labels)
 		prwParser.metricTypesCache.AddHeuristic(metricName, prompb.MetricMetadata{
 			// Note we cannot intuit Help nor Unit from the labels
 			MetricFamilyName: metricFamilyName,
@@ -140,7 +139,7 @@ func (prwParser *PrometheusRemoteOtelParser) TransformPrwToOtel(context context.
 func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context, rm pmetric.ResourceMetrics, family string, metrics []MetricData) error {
 	// TODO hughesjj cast to int if essentially int... maybe?  idk they do it in sfx.gateway
 	ilm := rm.ScopeMetrics().AppendEmpty()
-	ilm.Scope().SetName(tools2.TypeStr)
+	ilm.Scope().SetName(tools.TypeStr)
 	ilm.Scope().SetVersion("0.1")
 
 	metricsMetadata, found := prwParser.metricTypesCache.Get(family)
@@ -193,6 +192,18 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context,
 				dp.SetStartTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
 				dp.SetSum(sample.GetSum())
 				dp.SetCount(sample.GetCountInt())
+				for _, attr := range *metricsData.Labels {
+					if attr.Name == "le" {
+						// attr.Value might have the quantile
+					} else {
+						dp.Attributes().PutStr(attr.Name, attr.Value)
+					}
+				}
+			}
+			for _, sample := range *metricsData.Samples {
+				dp := histogramDps.DataPoints().AppendEmpty()
+				dp.SetTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
+				dp.SetStartTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
 				for _, attr := range *metricsData.Labels {
 					if attr.Name == "le" {
 						// attr.Value might have the quantile

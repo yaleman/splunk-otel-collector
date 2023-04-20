@@ -29,44 +29,30 @@ import (
 
 type PrometheusRemoteWriteServer struct {
 	*http.Server
-	handler
+	*handler
 }
 
-type Config struct {
-	Reporter      transport.Reporter
-	Addr          confignet.NetAddr
-	Path          string
-	CacheCapacity int
-	ReadTimeout   time.Duration
-	WriteTimeout  time.Duration
+type ServerConfig struct {
+	transport.Reporter
+	Mc           chan pmetric.Metrics
+	Parser       *prometheustranslation.PrometheusRemoteOtelParser
+	Addr         confignet.NetAddr
+	Path         string
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
 }
 
-func NewPrwConfig(address confignet.NetAddr, path string, timeout time.Duration, reporter transport.Reporter) *Config {
-	return &Config{
-		Addr:          address,
-		ReadTimeout:   timeout,
-		WriteTimeout:  timeout,
-		Reporter:      reporter,
-		Path:          path,
-		CacheCapacity: 10000,
-	}
-}
-
-func NewPrometheusRemoteWriteServer(ctx context.Context, config *Config, mc chan pmetric.Metrics) (*PrometheusRemoteWriteServer, error) {
-	parser, err := prometheustranslation.NewPrwOtelParser(ctx, config.Reporter, config.CacheCapacity)
-	if nil != err {
-		return nil, err
-	}
-	handler := newHandler(ctx, parser, config.Reporter, config.Path, mc)
-	server := http.Server{
+func NewPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (*PrometheusRemoteWriteServer, error) {
+	handler := newHandler(ctx, config.Parser, config.Reporter, config.Path, config.Mc)
+	server := &http.Server{
 		Handler:      handler,
 		Addr:         config.Addr.Endpoint,
 		ReadTimeout:  config.ReadTimeout,
 		WriteTimeout: config.WriteTimeout,
 	}
 	return &PrometheusRemoteWriteServer{
-		handler: *handler,
-		Server:  &server,
+		handler: handler,
+		Server:  server,
 	}, nil
 }
 

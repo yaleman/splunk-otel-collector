@@ -27,6 +27,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/testdata"
 )
 
@@ -39,15 +40,20 @@ func TestSmoke(t *testing.T) {
 		Transport: "tcp",
 	}
 	reporter := testdata.NewMockReporter(0)
-	cfg := NewPrwConfig(
-		addr,
-		"metrics",
-		timeout,
-		reporter,
-	)
+	parser, err := prometheustranslation.NewPrwOtelParser(context.Background(), reporter, 100)
+	require.Nil(t, err)
+	cfg := &ServerConfig{
+		Addr:         addr,
+		Path:         "/metrics",
+		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		Reporter:     reporter,
+		Mc:           mc,
+		Parser:       parser,
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	receiver, err := NewPrometheusRemoteWriteServer(ctx, cfg, mc)
+	receiver, err := NewPrometheusRemoteWriteServer(ctx, cfg)
 	assert.Nil(t, err)
 	require.NotNil(t, receiver)
 
@@ -81,15 +87,20 @@ func TestWrite(t *testing.T) {
 		Transport: "tcp",
 	}
 	reporter := testdata.NewMockReporter(0)
-	cfg := NewPrwConfig(
-		addr,
-		"/metrics",
-		5*time.Second,
-		reporter,
-	)
+	parser, err := prometheustranslation.NewPrwOtelParser(context.Background(), reporter, 100)
+	require.Nil(t, err)
+	cfg := &ServerConfig{
+		Addr:         addr,
+		Path:         "/metrics",
+		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		Reporter:     reporter,
+		Mc:           mc,
+		Parser:       parser,
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	defer cancel()
-	receiver, err := NewPrometheusRemoteWriteServer(ctx, cfg, mc)
+	receiver, err := NewPrometheusRemoteWriteServer(ctx, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, receiver)
 

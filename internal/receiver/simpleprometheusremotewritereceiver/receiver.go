@@ -27,6 +27,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/prw"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation"
 )
 
 // TODO hughesjj wait why is this a thing?
@@ -72,13 +73,20 @@ func (r *simplePrometheusWriteReceiver) buildTransportServer(ctx context.Context
 		return nil, err
 	}
 	defer listener.Close()
-	cfg := prw.NewPrwConfig(
-		r.config.ListenAddr,
-		r.config.ListenPath,
-		r.config.Timeout,
-		r.reporter,
-	)
-	server, err := prw.NewPrometheusRemoteWriteServer(ctx, cfg, metrics)
+	parser, err := prometheustranslation.NewPrwOtelParser(ctx, r.reporter, r.config.CacheCapacity)
+	if nil != err {
+		return nil, err
+	}
+	cfg := &prw.ServerConfig{
+		Addr:         r.config.ListenAddr,
+		Path:         r.config.ListenPath,
+		ReadTimeout:  r.config.Timeout,
+		WriteTimeout: r.config.Timeout,
+		Mc:           metrics,
+		Parser:       parser,
+		Reporter:     r.reporter,
+	}
+	server, err := prw.NewPrometheusRemoteWriteServer(ctx, cfg)
 	return server, err
 
 }
