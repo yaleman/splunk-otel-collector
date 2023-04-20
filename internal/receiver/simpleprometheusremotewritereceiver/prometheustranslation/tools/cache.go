@@ -49,6 +49,7 @@ func makeHeuristicTransitions() HeuristicTransitionMap {
 	// Creates a type mask where the i_th bit is 1 iff we can transition to that state
 	// indexed by numeric representation of the prompb type
 	typeMask := make([]HeuristicTransition, prompb.MetricMetadata_STATESET+1)
+	// Seed with ability to transition into self (makes reuse easier)
 	for i := 0; i < len(typeMask); i++ {
 		typeMask[i] = 1 << i
 	}
@@ -131,7 +132,7 @@ func (prwCache *PrometheusMetricTypeCache) storeMetadata(metricName string, meta
 	if prwCache.frozenKeys.Contains(metricName) || prwCache.frozenKeys.Contains(familyName) {
 		if !found {
 			prwCache.frozenKeys.Remove(metricName)
-			prwCache.frozenKeys.Remove(metricName)
+			prwCache.frozenKeys.Remove(familyName)
 			// TODO hughesjj maybe return error?
 		} else {
 			return explicitNameMetadata.MetricMetadata

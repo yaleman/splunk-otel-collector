@@ -102,8 +102,8 @@ func TestWrite(t *testing.T) {
 			select {
 			case metric := <-mc:
 				require.NotNil(t, metric)
-				assert.Greater(t, metric.DataPointCount(), 0)
 				assert.Greater(t, metric.MetricCount(), 0)
+				assert.Greaterf(t, metric.DataPointCount(), 0, "%s did not have datapoints", metric.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Type())
 				assert.NotNil(t, metric.ResourceMetrics())
 				atomic.AddInt32(&metricsSeen, 1)
 			case <-time.After(testTimeout + 2*time.Second):

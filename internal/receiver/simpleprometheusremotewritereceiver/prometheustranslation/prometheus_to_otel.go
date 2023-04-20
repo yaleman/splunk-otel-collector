@@ -193,6 +193,13 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context,
 				dp.SetStartTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
 				dp.SetSum(sample.GetSum())
 				dp.SetCount(sample.GetCountInt())
+				for _, attr := range *metricsData.Labels {
+					if attr.Name == "le" {
+						// attr.Value might have the quantile
+					} else {
+						dp.Attributes().PutStr(attr.Name, attr.Value)
+					}
+				}
 			}
 		case prompb.MetricMetadata_SUMMARY:
 			summaryDps := nm.SetEmptySummary()
@@ -204,6 +211,9 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context,
 				dp.SetStartTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
 				dp.SetSum(sample.GetValue())
 				dp.SetCount(uint64(sample.Size()))
+				for _, attr := range *metricsData.Labels {
+					dp.Attributes().PutStr(attr.Name, attr.Value)
+				}
 			}
 
 		case prompb.MetricMetadata_INFO, prompb.MetricMetadata_STATESET:
@@ -216,6 +226,9 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context,
 				dp := sumMetric.DataPoints().AppendEmpty()
 				dp.SetTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
 				dp.SetDoubleValue(sample.GetValue()) // TODO hughesjj maybe see if can be intvalue
+				for _, attr := range *metricsData.Labels {
+					dp.Attributes().PutStr(attr.Name, attr.Value)
+				}
 			}
 
 		default:
