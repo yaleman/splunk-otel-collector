@@ -3,10 +3,12 @@ module github.com/signalfx/splunk-otel-collector
 go 1.19
 
 require (
+	github.com/Code-Hex/go-generics-cache v1.3.0
 	github.com/alecthomas/participle/v2 v2.0.0
 	github.com/antonmedv/expr v1.12.5
 	github.com/apache/pulsar-client-go v0.10.0
 	github.com/cenkalti/backoff/v4 v4.2.0
+	github.com/deckarep/golang-set/v2 v2.3.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
@@ -81,6 +83,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.75.0
 	github.com/prometheus/client_model v0.3.0
 	github.com/prometheus/common v0.42.0
+	github.com/prometheus/prometheus v0.43.0
 	github.com/signalfx/golib/v3 v3.3.49
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.72.0
@@ -120,7 +123,6 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.4.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.1.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
-	github.com/Code-Hex/go-generics-cache v1.3.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apache/arrow/go/v10 v10.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.4.0 // indirect
@@ -144,7 +146,6 @@ require (
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
-	github.com/prometheus/prometheus v0.43.0 // indirect
 	github.com/prometheus/statsd_exporter v0.22.7 // indirect
 	github.com/relvacode/iso8601 v1.3.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
@@ -260,7 +261,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/golang/snappy v0.0.4 // indirect
+	github.com/golang/snappy v0.0.4
 	github.com/google/cadvisor v0.47.1 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
 	github.com/google/gnostic v0.6.9 // indirect
@@ -445,7 +446,7 @@ require (
 	go.etcd.io/etcd/api/v3 v3.5.8 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.8 // indirect
 	go.mongodb.org/atlas v0.24.0 // indirect
-	go.opencensus.io v0.24.0 // indirect
+	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector/component v0.75.0
 	go.opentelemetry.io/collector/consumer v0.75.0
 	go.opentelemetry.io/collector/featuregate v0.75.0 // indirect

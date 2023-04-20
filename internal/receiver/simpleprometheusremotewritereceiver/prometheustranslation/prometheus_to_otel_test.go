@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prw
+package prometheustranslation
 
 import (
 	"context"
@@ -22,15 +22,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/testdata"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/testdata"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/tools"
 )
 
 func TestParsePrometheusRemoteWriteRequest(t *testing.T) {
 	ctx := context.Background()
 	expectedCalls := 1
-	reporter := NewMockReporter(expectedCalls)
+	reporter := testdata.NewMockReporter(expectedCalls)
 	require.NotNil(t, reporter)
-	parser, err := NewPrwOtelParser(context.Background(), reporter)
+	parser, err := NewPrwOtelParser(context.Background(), reporter, 100)
 	require.Nil(t, err)
 
 	sampleWriteRequests := testdata.GetWriteRequests()
@@ -40,7 +41,7 @@ func TestParsePrometheusRemoteWriteRequest(t *testing.T) {
 		for key, partition := range partitions {
 			for _, md := range partition {
 				assert.NotEmpty(t, key)
-				assert.Equal(t, md.MetricMetadata.MetricFamilyName, key)
+				assert.Equal(t, md.MetricMetadata.MetricFamilyName, tools.GetBaseMetricFamilyName(key))
 			}
 		}
 	}
@@ -50,7 +51,7 @@ func TestParsePrometheusRemoteWriteRequest(t *testing.T) {
 		require.NoError(t, err)
 		for key, partition := range partitions {
 			for _, md := range partition {
-				assert.Equal(t, md.MetricMetadata.MetricFamilyName, key)
+				assert.Equal(t, md.MetricMetadata.MetricFamilyName, tools.GetBaseMetricFamilyName(key))
 			}
 		}
 	}
@@ -59,9 +60,9 @@ func TestParsePrometheusRemoteWriteRequest(t *testing.T) {
 func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	ctx := context.Background()
 	expectedCalls := 1
-	reporter := NewMockReporter(expectedCalls)
+	reporter := testdata.NewMockReporter(expectedCalls)
 	require.NotNil(t, reporter)
-	parser, err := NewPrwOtelParser(context.Background(), reporter)
+	parser, err := NewPrwOtelParser(context.Background(), reporter, 100)
 	require.Nil(t, err)
 
 	sampleWriteRequests := testdata.GetWriteRequests()
@@ -93,9 +94,9 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 func TestParseAndPartitionMixedPrometheusRemoteWriteRequest(t *testing.T) {
 	ctx := context.Background()
 	expectedCalls := 1
-	reporter := NewMockReporter(expectedCalls)
+	reporter := testdata.NewMockReporter(expectedCalls)
 	require.NotNil(t, reporter)
-	parser, err := NewPrwOtelParser(context.Background(), reporter)
+	parser, err := NewPrwOtelParser(context.Background(), reporter, 100)
 	require.Nil(t, err)
 
 	sampleWriteRequests := testdata.FlattenWriteRequests(testdata.GetWriteRequests())
@@ -169,9 +170,9 @@ func TestParseAndPartitionMixedPrometheusRemoteWriteRequest(t *testing.T) {
 
 func TestFromWriteRequest(t *testing.T) {
 	expectedCalls := 1
-	reporter := NewMockReporter(expectedCalls)
+	reporter := testdata.NewMockReporter(expectedCalls)
 	require.NotNil(t, reporter)
-	parser, err := NewPrwOtelParser(context.Background(), reporter)
+	parser, err := NewPrwOtelParser(context.Background(), reporter, 100)
 	require.Nil(t, err)
 
 	sampleWriteRequests := testdata.FlattenWriteRequests(testdata.GetWriteRequests())

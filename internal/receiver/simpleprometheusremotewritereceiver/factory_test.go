@@ -28,8 +28,8 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/prw"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/testdata"
 )
 
 func TestFactory(t *testing.T) {
@@ -47,7 +47,7 @@ func TestFactory(t *testing.T) {
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
-	mockReporter := prw.NewMockReporter(0)
+	mockReporter := testdata.NewMockReporter(0)
 	receiver, err := newPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
 	receiver.reporter = mockReporter
 
@@ -74,7 +74,6 @@ func TestFactoryOtelIntegration(t *testing.T) {
 	require.Nil(t, err)
 	parsedFactory := factories.Receivers[typeString]
 	require.NotEmpty(t, parsedFactory)
-	t.Logf("%s", parsedFactory)
 	assert.EqualValues(t, parsedFactory.Type(), typeString)
 	assert.EqualValues(t, 3, parsedFactory.MetricsReceiverStability())
 }

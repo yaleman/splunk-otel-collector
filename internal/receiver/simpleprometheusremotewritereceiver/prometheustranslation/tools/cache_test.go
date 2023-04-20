@@ -21,6 +21,7 @@ import (
 
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCacheAccessPatterns(t *testing.T) {
@@ -70,27 +71,34 @@ func TestCacheAccessPatterns(t *testing.T) {
 	assert.Equal(t, prompb.MetricMetadata_GAUGE, value.Type)
 	assert.NotEmpty(t, value.MetricFamilyName)
 
+	// we can even update it if we get a better signal
+	value = pmtCache.AddHeuristic("HeuristicFirst", prompb.MetricMetadata{Type: prompb.MetricMetadata_COUNTER})
+	assert.Equal(t, prompb.MetricMetadata_COUNTER, value.Type)
+	assert.NotEmpty(t, value.MetricFamilyName)
+
 	// It should be overridden by any Explicit metadata though
 	value = pmtCache.AddMetadata("HeuristicFirst", prompb.MetricMetadata{
-		Type:             prompb.MetricMetadata_HISTOGRAM,
+		Type:             prompb.MetricMetadata_GAUGEHISTOGRAM,
 		Unit:             "G",
 		Help:             "!!!",
 		MetricFamilyName: "HeuristicFirst",
 	})
-	assert.Equal(t, prompb.MetricMetadata_HISTOGRAM, value.Type)
+	assert.Equal(t, prompb.MetricMetadata_GAUGEHISTOGRAM, value.Type)
 	assert.NotEmpty(t, value.MetricFamilyName)
 	assert.NotEmpty(t, value.Unit)
 	assert.NotEmpty(t, value.Help)
 
-	// If they give us conflicting explicit metadata, we should trust their latest
+	// If they give us conflicting explicit metadata, we should maintain stability
 	value = pmtCache.AddMetadata("HeuristicFirst", prompb.MetricMetadata{Type: prompb.MetricMetadata_SUMMARY})
-	assert.Equal(t, prompb.MetricMetadata_SUMMARY, value.Type)
+	assert.Equal(t, prompb.MetricMetadata_GAUGEHISTOGRAM, value.Type)
 	assert.NotEmpty(t, value.MetricFamilyName)
 	assert.NotEmpty(t, value.Unit)
 	assert.NotEmpty(t, value.Help)
 
-	// Unless they give us literal junk
-	value = pmtCache.AddMetadata("HeuristicFirst", prompb.MetricMetadata{Type: prompb.MetricMetadata_UNKNOWN})
-	assert.Equal(t, prompb.MetricMetadata_SUMMARY, value.Type)
+	// Unless they had given us literal junk
+	value = pmtCache.AddMetadata("MetadataFirst", prompb.MetricMetadata{Type: prompb.MetricMetadata_UNKNOWN})
+	require.Equal(t, prompb.MetricMetadata_UNKNOWN, value.Type)
+	value = pmtCache.AddMetadata("MetadataFirst", prompb.MetricMetadata{Type: prompb.MetricMetadata_HISTOGRAM})
+	assert.Equal(t, prompb.MetricMetadata_HISTOGRAM, value.Type)
 	assert.NotEmpty(t, value.MetricFamilyName)
 }

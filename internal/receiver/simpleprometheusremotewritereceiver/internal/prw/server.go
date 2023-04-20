@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation"
 )
 
 type PrometheusRemoteWriteServer struct {
@@ -32,25 +33,27 @@ type PrometheusRemoteWriteServer struct {
 }
 
 type Config struct {
-	Reporter     transport.Reporter
-	Addr         confignet.NetAddr
-	Path         string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
+	Reporter      transport.Reporter
+	Addr          confignet.NetAddr
+	Path          string
+	CacheCapacity int
+	ReadTimeout   time.Duration
+	WriteTimeout  time.Duration
 }
 
 func NewPrwConfig(address confignet.NetAddr, path string, timeout time.Duration, reporter transport.Reporter) *Config {
 	return &Config{
-		Addr:         address,
-		ReadTimeout:  timeout,
-		WriteTimeout: timeout,
-		Reporter:     reporter,
-		Path:         path,
+		Addr:          address,
+		ReadTimeout:   timeout,
+		WriteTimeout:  timeout,
+		Reporter:      reporter,
+		Path:          path,
+		CacheCapacity: 10000,
 	}
 }
 
 func NewPrometheusRemoteWriteServer(ctx context.Context, config *Config, mc chan pmetric.Metrics) (*PrometheusRemoteWriteServer, error) {
-	parser, err := NewPrwOtelParser(ctx, config.Reporter)
+	parser, err := prometheustranslation.NewPrwOtelParser(ctx, config.Reporter, config.CacheCapacity)
 	if nil != err {
 		return nil, err
 	}
@@ -81,14 +84,14 @@ func (prw *PrometheusRemoteWriteServer) ListenAndServe() error {
 }
 
 type handler struct {
-	parser   *PrometheusRemoteOtelParser
+	parser   *prometheustranslation.PrometheusRemoteOtelParser
 	ctx      context.Context
 	reporter transport.Reporter
 	mc       chan pmetric.Metrics
 	path     string
 }
 
-func newHandler(ctx context.Context, parser *PrometheusRemoteOtelParser, reporter transport.Reporter, path string, mc chan pmetric.Metrics) *handler {
+func newHandler(ctx context.Context, parser *prometheustranslation.PrometheusRemoteOtelParser, reporter transport.Reporter, path string, mc chan pmetric.Metrics) *handler {
 	return &handler{
 		ctx:      ctx,
 		path:     path,

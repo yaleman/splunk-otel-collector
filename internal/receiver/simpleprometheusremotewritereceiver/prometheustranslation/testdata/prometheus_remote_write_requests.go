@@ -19,7 +19,7 @@ import (
 
 	"github.com/prometheus/prometheus/prompb"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/tools"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/tools"
 )
 
 var sampleCounterTs = []prompb.TimeSeries{

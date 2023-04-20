@@ -53,6 +53,6 @@ func main() {
 		}
 
 		// Adjust the interval between metric sends as needed
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }

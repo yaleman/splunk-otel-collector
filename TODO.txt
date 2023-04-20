@@ -1,7 +1,8 @@
 1. int64 vs float64 for numeric like nums?
 2. Okay, should I move "server" up out of internal?  Would totally get rid of config duplication issues..
-3. more testing
-4. defer Unlock?
-5. configurable suffixes and labels
-6. what about the cmp in config_test is failing why empty rawrr what control char exists in file?
-    1. does this mean i need a hex editor or differ or some sort of think to make the chars pop from invalid
+    Nah, but move up the parser since that'll eventually go elsewhere anyway
+3. configurable suffixes and labels
+4. bitset graph for valid prom metric type transitions
+5. @ time of actually calling addMetrics we should enable potential locking
+    Let's allow a configurable buffer between write requests (parse them though!) and actually attaching/sending metrics?
+

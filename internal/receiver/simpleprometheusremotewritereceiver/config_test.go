@@ -39,34 +39,27 @@ func TestValidateConfig(t *testing.T) {
 func TestParseConfig(t *testing.T) {
 	cfg := NewFactory().CreateDefaultConfig()
 	require.NotNil(t, cfg)
-	// var rawYaml component.Component
+
 	rawYaml := make(map[string]any)
-	file, err := os.Open("examples/prometheusremotewrite/otel-collector-config.yaml")
-	if nil != err {
-		file, err = os.Open("internal/testdata/otel-collector-config.yaml")
-	}
+	file, err := os.Open("prometheustranslation/testdata/otel-collector-config.yaml")
 	require.Nil(t, err)
 
 	buffer, err := io.ReadAll(file)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 	assert.NotEmpty(t, buffer)
 	assert.Nil(t, yaml.Unmarshal(buffer, rawYaml))
 	assert.NotEmpty(t, rawYaml)
-	require.Nil(t, err)
 
 	rawCfgs := make(map[string]map[component.ID]map[string]any)
 	conf := confmap.NewFromStringMap(rawYaml)
-	t.Log(conf.AllKeys())
-
 	err = conf.Unmarshal(&rawCfgs, confmap.WithErrorUnused())
 	require.Nil(t, err)
 	require.NotEmpty(t, rawCfgs)
-	require.NotEmpty(t, rawCfgs["receivers"])
 
+	require.NotEmpty(t, rawCfgs["receivers"])
 	for id, value := range rawCfgs["receivers"] {
 		require.NotEmpty(t, id)
 		require.NotEmpty(t, value)
-		t.Logf("%s", value)
 		assert.Nil(t, component.UnmarshalConfig(confmap.NewFromStringMap(value), cfg))
 	}
 	assert.NotEmpty(t, cfg)

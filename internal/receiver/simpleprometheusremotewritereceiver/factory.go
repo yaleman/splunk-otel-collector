@@ -50,6 +50,7 @@ func createDefaultConfig() component.Config {
 			Endpoint:  "localhost:0", // Will randomize port!
 			Transport: "tcp",
 		},
-		ListenPath: "/metrics",
+		ListenPath:    "/metrics",
+		CacheCapacity: 10000,
 	}
 }

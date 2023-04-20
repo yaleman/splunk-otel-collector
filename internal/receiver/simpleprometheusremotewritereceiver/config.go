@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/confignet"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/tools"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/tools"
 )
 
 var _ component.Config = (*Config)(nil)
@@ -33,11 +33,11 @@ const (
 )
 
 type Config struct {
-	// TODO the other guy has some really cool stuff in here
-	ListenAddr confignet.NetAddr `mapstructure:",squash"`
-	ListenPath string            `mapstructure:"path"`
-	Timeout    time.Duration     `mapstructure:"timeout"`
-	BufferSize int               `mapstructure:"buffer_size"` // Channel buffer size, defaults to blocking each request until processed
+	ListenAddr    confignet.NetAddr `mapstructure:",squash"`
+	ListenPath    string            `mapstructure:"path"`
+	Timeout       time.Duration     `mapstructure:"timeout"`
+	BufferSize    int               `mapstructure:"buffer_size"` // Channel buffer size, defaults to blocking each request until processed
+	CacheCapacity uint              `mapstructure:"cache_size"`
 }
 
 func (c *Config) Validate() error {
@@ -48,8 +48,11 @@ func (c *Config) Validate() error {
 	if c.ListenAddr.Transport == "" {
 		errs = append(errs, errors.New("transport must not be empty"))
 	}
-	if c.Timeout < time.Second {
+	if c.Timeout < time.Millisecond {
 		errs = append(errs, errors.New("impractically short timeout"))
+	}
+	if c.CacheCapacity <= 100 {
+		errs = append(errs, errors.New("inadvisably small capacity for cache"))
 	}
 	if err := componenttest.CheckConfigStruct(c); err != nil {
 		errs = append(errs, err)
@@ -59,24 +62,3 @@ func (c *Config) Validate() error {
 	}
 	return nil
 }
-
-//
-//// Unmarshal a confmap.Conf into the config struct.
-//func (c *Config) Unmarshal(conf *confmap.Conf) error {
-//	if err := conf.Unmarshal(c, confmap.WithErrorUnused()); err != nil {
-//		return err
-//	}
-//	ts := conf.Get("timeout")
-//	switch timeout := ts.(type) {
-//	case int, int8, int16, int32, int64:
-//		to := timeout.(int)
-//		c.Timeout = time.Second * time.Duration(to)
-//	case string:
-//		to, err := time.ParseDuration(timeout)
-//		if nil != err {
-//			return err
-//		}
-//		c.Timeout = to
-//	}
-//	return nil
-//}

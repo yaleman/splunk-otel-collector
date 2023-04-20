@@ -26,8 +26,8 @@ import (
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/testdata"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/testdata"
 )
 
 func TestSmoke(t *testing.T) {
@@ -38,7 +38,7 @@ func TestSmoke(t *testing.T) {
 		Endpoint:  "localhost:0",
 		Transport: "tcp",
 	}
-	reporter := NewMockReporter(0)
+	reporter := testdata.NewMockReporter(0)
 	cfg := NewPrwConfig(
 		addr,
 		"metrics",
@@ -80,7 +80,7 @@ func TestWrite(t *testing.T) {
 		Endpoint:  fmt.Sprintf("localhost:%d", port),
 		Transport: "tcp",
 	}
-	reporter := NewMockReporter(0)
+	reporter := testdata.NewMockReporter(0)
 	cfg := NewPrwConfig(
 		addr,
 		"/metrics",

@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prw
+package prometheustranslation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -24,8 +25,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/tools"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
+	tools2 "github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/prometheustranslation/tools"
 )
 
 func (prwParser *PrometheusRemoteOtelParser) FromPrometheusWriteRequestMetrics(ctx context.Context, request *prompb.WriteRequest) (pmetric.Metrics, error) {
@@ -46,25 +47,23 @@ func (prwParser *PrometheusRemoteOtelParser) FromPrometheusWriteRequestMetrics(c
 
 type MetricData struct {
 	MetricName     string
-	Labels         []prompb.Label
-	Samples        []prompb.Sample
-	Exemplars      []prompb.Exemplar
-	Histograms     []prompb.Histogram
+	Labels         *[]prompb.Label
+	Samples        *[]prompb.Sample
+	Exemplars      *[]prompb.Exemplar
+	Histograms     *[]prompb.Histogram
 	MetricMetadata prompb.MetricMetadata
 	FromMd         bool
 }
 
 type PrometheusRemoteOtelParser struct {
-	metricTypesCache *tools.PrometheusMetricTypeCache
+	metricTypesCache *tools2.PrometheusMetricTypeCache
 	Reporter         transport.Reporter
 	context.Context
 }
 
-const maxCachedMetadata = 10000
-
-func NewPrwOtelParser(ctx context.Context, reporter transport.Reporter) (*PrometheusRemoteOtelParser, error) {
+func NewPrwOtelParser(ctx context.Context, reporter transport.Reporter, capacity int) (*PrometheusRemoteOtelParser, error) {
 	return &PrometheusRemoteOtelParser{
-		metricTypesCache: tools.NewPrometheusMetricTypeCache(ctx, maxCachedMetadata),
+		metricTypesCache: tools2.NewPrometheusMetricTypeCache(ctx, capacity),
 		Reporter:         reporter,
 		Context:          ctx,
 	}, nil
@@ -72,54 +71,49 @@ func NewPrwOtelParser(ctx context.Context, reporter transport.Reporter) (*Promet
 
 // The ordering of the timeseries in the WriteRequest(s) matters significantly.
 // Ex for histograms you need the metrics with an le attribute to appear first
-func (prwParser *PrometheusRemoteOtelParser) partitionWriteRequest(ctx context.Context, writeReq *prompb.WriteRequest) (map[string][]MetricData, error) {
+// This function is written to prefer idempotence/maintainability over efficiency, at least until we vet the methodology
+func (prwParser *PrometheusRemoteOtelParser) partitionWriteRequest(_ context.Context, writeReq *prompb.WriteRequest) (map[string][]MetricData, error) {
 	partitions := make(map[string][]MetricData)
 
-	if len(writeReq.Timeseries) >= maxCachedMetadata {
-		err := fmt.Errorf("CANNOT CACHE ALL METADATA -- REQUEST TOO LARGE.  Max %d but given %d", maxCachedMetadata, len(writeReq.Metadata))
-		prwParser.Reporter.OnTranslationError(ctx, err)
-		return nil, err
-	}
-
 	// update cache with any metric data found.  Do this before processing any data to avoid incorrect heuristics.
+	// TODO hughesjj so wait.... Are there any guarantees about the length of Metadata w.r.t TimeSeries?
 	for _, metadata := range writeReq.Metadata {
 		prwParser.metricTypesCache.AddMetadata(metadata.MetricFamilyName, metadata)
 	}
-	// TODO hughesjj so wait.... Are there any guarantees about the length of Metadata w.r.t TimeSeries?
-	for _, ts := range writeReq.Timeseries {
-		metricName, filteredLabels := tools.GetMetricNameAndFilteredLabels(ts.Labels)
-		metricFamilyName := tools.GetBaseMetricFamilyName(metricName)
+
+	indexToMetricNameMapping := make([]MetricData, len(writeReq.Timeseries))
+	for index, ts := range writeReq.Timeseries {
+		metricName, filteredLabels := tools2.GetMetricNameAndFilteredLabels(ts.Labels)
+		metricFamilyName := tools2.GetBaseMetricFamilyName(metricName)
 
 		// Determine metric type using cache if available, otherwise use label heuristics
-		metricType := tools.GuessMetricTypeByLabels(ts.Labels)
-		metricMetadata := prwParser.metricTypesCache.AddHeuristic(metricName, prompb.MetricMetadata{
+		metricType := tools2.GuessMetricTypeByLabels(ts.Labels)
+		prwParser.metricTypesCache.AddHeuristic(metricName, prompb.MetricMetadata{
 			// Note we cannot intuit Help nor Unit from the labels
 			MetricFamilyName: metricFamilyName,
 			Type:             metricType,
 		})
-
-		// Add the parsed time-series data to the corresponding partition
-		// Might be nice to freeze and assign MetricMetadata after this loop has had the chance to "maximally cache" it all
-		partitions[metricFamilyName] = append(partitions[metricFamilyName], MetricData{
-			Labels:         filteredLabels,
-			Samples:        ts.Samples,
-			Exemplars:      ts.Exemplars,
-			Histograms:     ts.Histograms,
-			MetricName:     metricName,
-			MetricMetadata: metricMetadata,
-		})
-	}
-	// TODO hughesjj so... should we sort on quantiles etc here?
-	for metricFamilyName, data := range partitions {
-		// TODO hughesjj wait do we even want this?
-		// I think there's a slim but nonzero chance we got a better read on the heuristics later on for a given metricFamilyName
-		metricMetadata, found := prwParser.metricTypesCache.Get(metricFamilyName)
-		if found {
-			for index := range data {
-				partitions[metricFamilyName][index].MetricMetadata = metricMetadata
-			}
+		indexToMetricNameMapping[index] = MetricData{
+			Labels:     &filteredLabels,
+			Samples:    &writeReq.Timeseries[index].Samples,
+			Exemplars:  &writeReq.Timeseries[index].Exemplars,
+			Histograms: &writeReq.Timeseries[index].Histograms,
+			MetricName: metricName,
 		}
 	}
+	for index, metricData := range indexToMetricNameMapping {
+		// Add the parsed time-series data to the corresponding partition
+		// Might be nice to freeze and assign MetricMetadata after this loop has had the chance to "maximally cache" it all
+		metricMetaData, found := prwParser.metricTypesCache.Get(metricData.MetricName)
+		if !found {
+			return nil, errors.New("either cache too small to handle write request or bug in code prometheus remote write receiver metadata caching")
+		}
+		indexToMetricNameMapping[index].MetricMetadata = metricMetaData
+		metricData = indexToMetricNameMapping[index]
+		partitions[metricData.MetricMetadata.MetricFamilyName] = append(partitions[metricData.MetricMetadata.MetricFamilyName], metricData)
+	}
+
+	// TODO hughesjj okay what about if it isn't a valid write request as per conventions?
 
 	return partitions, nil
 }
@@ -146,11 +140,15 @@ func (prwParser *PrometheusRemoteOtelParser) TransformPrwToOtel(context context.
 func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context, rm pmetric.ResourceMetrics, family string, metrics []MetricData) error {
 	// TODO hughesjj cast to int if essentially int... maybe?  idk they do it in sfx.gateway
 	ilm := rm.ScopeMetrics().AppendEmpty()
-	ilm.Scope().SetName(tools.TypeStr)
+	ilm.Scope().SetName(tools2.TypeStr)
 	ilm.Scope().SetVersion("0.1")
 
-	var translationErrors []error
+	metricsMetadata, found := prwParser.metricTypesCache.Get(family)
+	if !found {
+		return fmt.Errorf("could not find metadata for family %s", family)
+	}
 
+	var translationErrors []error
 	for _, metricsData := range metrics {
 		nm := ilm.Metrics().AppendEmpty()
 		nm.SetUnit(metricsData.MetricMetadata.Unit)
@@ -161,14 +159,14 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context,
 			// TODO hughesjj should prolly warn on this
 			nm.SetName(family)
 		}
-		switch metricType := metricsData.MetricMetadata.Type; metricType {
+		switch metricsMetadata.Type {
 		case prompb.MetricMetadata_GAUGE, prompb.MetricMetadata_UNKNOWN:
 			gauge := nm.SetEmptyGauge()
-			for _, sample := range metricsData.Samples {
+			for _, sample := range *metricsData.Samples {
 				dp := gauge.DataPoints().AppendEmpty()
 				dp.SetDoubleValue(sample.Value)
 				dp.SetTimestamp(pcommon.Timestamp(sample.Timestamp * int64(time.Millisecond)))
-				for _, attr := range metricsData.Labels {
+				for _, attr := range *metricsData.Labels {
 					dp.Attributes().PutStr(attr.Name, attr.Value)
 				}
 			}
@@ -178,18 +176,18 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context,
 			sumMetric.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 			// TODO hughesjj No idea how correct this is, but scraper always sets this way.  could totally see PRW being different
 			sumMetric.SetIsMonotonic(true)
-			for _, sample := range metricsData.Samples {
+			for _, sample := range *metricsData.Samples {
 				counter := nm.Sum().DataPoints().AppendEmpty()
 				counter.SetDoubleValue(sample.Value)
 				counter.SetTimestamp(pcommon.Timestamp(sample.Timestamp * int64(time.Millisecond)))
-				for _, attr := range metricsData.Labels {
+				for _, attr := range *metricsData.Labels {
 					counter.Attributes().PutStr(attr.Name, attr.Value)
 				}
 				// Fairly certain counter is byref here
 			}
 		case prompb.MetricMetadata_HISTOGRAM:
 			histogramDps := nm.SetEmptyHistogram()
-			for _, sample := range metricsData.Histograms {
+			for _, sample := range *metricsData.Histograms {
 				dp := histogramDps.DataPoints().AppendEmpty()
 				dp.SetTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
 				dp.SetStartTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
@@ -199,7 +197,7 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context,
 		case prompb.MetricMetadata_SUMMARY:
 			summaryDps := nm.SetEmptySummary()
 
-			for _, sample := range metricsData.Samples {
+			for _, sample := range *metricsData.Samples {
 				dp := summaryDps.DataPoints().AppendEmpty()
 				sample.Descriptor()
 				dp.SetTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
@@ -214,19 +212,17 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(context context.Context,
 			sumMetric.SetIsMonotonic(false)
 			sumMetric.SetAggregationTemporality(pmetric.AggregationTemporalityUnspecified)
 
-			for _, sample := range metricsData.Samples {
+			for _, sample := range *metricsData.Samples {
 				dp := sumMetric.DataPoints().AppendEmpty()
 				dp.SetTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
 				dp.SetDoubleValue(sample.GetValue()) // TODO hughesjj maybe see if can be intvalue
 			}
 
 		default:
-			err := fmt.Errorf("unsupported type %s", metricType)
+			err := fmt.Errorf("unsupported type %s for metric %s", metricsMetadata.Type, metricsData.MetricName)
 			translationErrors = append(translationErrors, err)
 			prwParser.Reporter.OnTranslationError(context, err)
-
 		}
-
 	}
 	if translationErrors != nil {
 		return multierror.Wrap(translationErrors)
