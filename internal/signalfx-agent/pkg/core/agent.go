@@ -23,7 +23,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/writer/tracetracker"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
-	"github.com/signalfx/signalfx-agent/pkg/observers"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
@@ -42,7 +41,6 @@ const (
 
 // Agent is what hooks up observers, monitors, and the datapoint writer.
 type Agent struct {
-	observers           *observers.ObserverManager
 	monitors            *monitors.MonitorManager
 	writer              *writer.MultiWriter
 	meta                *meta.AgentMeta
@@ -67,13 +65,6 @@ func NewAgent() *Agent {
 		spanChan:            make(chan []*trace.Span, traceSpanChanCapacity),
 		endpointHostTracker: services.NewEndpointHostTracker(),
 		startTime:           time.Now(),
-	}
-
-	agent.observers = &observers.ObserverManager{
-		CallbackTargets: &observers.ServiceCallbacks{
-			Added:   agent.endpointAdded,
-			Removed: agent.endpointRemoved,
-		},
 	}
 
 	agent.meta = &meta.AgentMeta{}
@@ -138,7 +129,6 @@ func (a *Agent) configure(conf *config.Config) {
 
 	// The order of Configure calls is very important!
 	a.monitors.Configure(conf.Monitors, &conf.Collectd, conf.IntervalSeconds)
-	a.observers.Configure(conf.Observers)
 	a.lastConfig = conf
 }
 
@@ -153,7 +143,6 @@ func (a *Agent) endpointRemoved(service services.Endpoint) {
 }
 
 func (a *Agent) shutdown() {
-	a.observers.Shutdown()
 	a.monitors.Shutdown()
 	//neopy.Instance().Shutdown()
 	a.writer.Shutdown()

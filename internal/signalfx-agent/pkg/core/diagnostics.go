@@ -121,7 +121,6 @@ func (a *Agent) InternalMetrics() []*datapoint.Datapoint {
 	}...)
 
 	out = append(out, a.writer.InternalMetrics()...)
-	out = append(out, a.observers.InternalMetrics()...)
 	out = append(out, a.monitors.InternalMetrics()...)
 
 	for i := range out {

@@ -25,7 +25,6 @@ func (a *Agent) DiagnosticText(section string) string {
 		out +=
 			"SignalFx Agent version:           " + constants.Version + "\n" +
 				"Agent uptime:                     " + uptime + "\n" +
-				a.observers.DiagnosticText() + "\n" +
 				a.monitors.SummaryDiagnosticText() + "\n" +
 				a.writer.DiagnosticText() + "\n"
 
