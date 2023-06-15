@@ -1,0 +1,29 @@
+receivers:
+  smartagent/telegraf/ntpq:
+    type: telegraf/ntpq
+  smartagent/collectd/custom:
+    type: collectd/custom
+    template: |
+      LoadPlugin "python"
+      TypesDB "${PLUGIN_FOLDER}/upstat_types.db"
+      <Plugin python>
+        ModulePath "${PLUGIN_FOLDER}"
+        Import "collectd-upstat"
+        <Module "collectd-upstat">
+        </Module>
+      </Plugin>
+exporters:
+  logging:
+    verbosity: detailed
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    metrics:
+      receivers: [smartagent/telegraf/ntpq, smartagent/collectd/custom]
+      exporters: [otlp, logging]

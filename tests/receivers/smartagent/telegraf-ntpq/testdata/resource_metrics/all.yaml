@@ -1,0 +1,65 @@
+resource_metrics:
+  - scope_metrics:
+      - metrics:
+          - name: up
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              plugin: upstat
+              plugin_instance: upstat
+              system.type: custom
+          - name: ntpq.jitter
+            type: DoubleGauge
+            attributes:
+              plugin: telegraf/ntpq
+              refid: <ANY>
+              remote: <ANY>
+              stratum: <ANY>
+              system.type: ntpq
+              type: <ANY>
+          - name: ntpq.poll
+            type: IntGauge
+            attributes:
+              plugin: telegraf/ntpq
+              refid: <ANY>
+              remote: <ANY>
+              stratum: <ANY>
+              system.type: ntpq
+              type: <ANY>
+          - name: ntpq.offset
+            type: DoubleGauge
+            attributes:
+              plugin: telegraf/ntpq
+              refid: <ANY>
+              remote: <ANY>
+              stratum: <ANY>
+              system.type: ntpq
+              type: <ANY>
+          - name: ntpq.delay
+            type: DoubleGauge
+            attributes:
+              plugin: telegraf/ntpq
+              refid: <ANY>
+              remote: <ANY>
+              stratum: <ANY>
+              system.type: ntpq
+              type: <ANY>
+          - name: ntpq.reach
+            type: IntGauge
+            attributes:
+              plugin: telegraf/ntpq
+              refid: <ANY>
+              remote: <ANY>
+              stratum: <ANY>
+              system.type: ntpq
+              type: <ANY>
+          - name: ntpq.when
+            type: IntGauge
+            attributes:
+              plugin: telegraf/ntpq
+              refid: <ANY>
+              remote: <ANY>
+              stratum: <ANY>
+              system.type: ntpq
+              type: <ANY>
