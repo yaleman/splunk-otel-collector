@@ -1,0 +1,37 @@
+extensions:
+  docker_observer:
+
+receivers:
+  receiver_creator:
+    accept_endpoint_properties: true
+    watch_observers:
+      - docker_observer
+
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+          - gauge.connected_clients
+
+exporters:
+  otlp:
+    endpoint: ${env:OTLP_ENDPOINT}
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  extensions:
+    - docker_observer
+  pipelines:
+    metrics:
+      exporters:
+        - otlp
+      processors:
+        - filter
+      receivers:
+        - receiver_creator

@@ -1,0 +1,15 @@
+resource_metrics:
+  - attributes:
+      attr.one: attr_one_value
+      attr.two: attr_two_value
+      container.image.name: redis
+      container.name: redis-container-name
+    scope_metrics:
+      - metrics:
+          - name: gauge.connected_clients
+            type: IntGauge
+            attributes:
+              dsname: value
+              plugin: redis_info
+              plugin_instance: <ANY>
+              system.type: redis
