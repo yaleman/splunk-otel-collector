@@ -4,24 +4,17 @@ go 1.20
 
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
-	github.com/dancannon/gorethink => gopkg.in/gorethink/gorethink.v4 v4.0.0
-	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20211029142026-90d18852ba43
-	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 )
 
 // security updates
 replace (
 	github.com/Azure/go-autorest/autorest/adal => github.com/Azure/go-autorest/autorest/adal v0.9.18
-	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0
-	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.6
 	github.com/signalfx/sapm-proto => github.com/signalfx/sapm-proto v0.12.0
-	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/etcd and github.com/coreos/go-etcd
 	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.5.1
-	k8s.io/apiserver => k8s.io/apiserver v0.24.1 // required to drop dependency on go.etcd.io/etcd for CVE-2018-1099
 )
 
 require (

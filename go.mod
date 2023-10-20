@@ -548,8 +548,6 @@ replace (
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 
 	github.com/signalfx/signalfx-agent => ./internal/signalfx-agent
-
-	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 )
 
 // https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/12322#issuecomment-1185029670
@@ -561,30 +559,9 @@ replace (
 	github.com/Masterminds/goutils => github.com/Masterminds/goutils v1.1.1
 	github.com/apache/thrift => github.com/apache/thrift v0.16.0
 	github.com/containerd/containerd => github.com/containerd/containerd v1.6.18
-	github.com/containernetworking/plugins => github.com/containernetworking/plugins v1.1.1
-	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0 // required to drop dependency on deprecated go.etcd.io/etcd
-	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.14.0
-	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
-	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.1
-	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.14.0
-	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/etcd and github.com/coreos/go-etcd
-	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
 	golang.org/x/crypto => golang.org/x/crypto v0.5.0
 	golang.org/x/net => golang.org/x/net v0.17.0
-	k8s.io/apiserver => k8s.io/apiserver v0.24.1 // required to drop dependency on deprecated go.etcd.io/etcd
 )
-
-// this is the version that doesn't suffer from https://github.com/mattn/go-ieproxy/issues/45
-replace github.com/mattn/go-ieproxy => github.com/mattn/go-ieproxy v0.0.1
-
-// vault has invalid requirements https://github.com/hashicorp/vault/pull/13321
-replace (
-	github.com/hashicorp/vault/api/auth/approle => github.com/hashicorp/vault/api/auth/approle v0.1.2-0.20211223174530-3688d63348b3
-	github.com/hashicorp/vault/api/auth/userpass => github.com/hashicorp/vault/api/auth/userpass v0.1.1-0.20211223174530-3688d63348b3
-)
-
-// https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/8081
-replace github.com/googleapis/gnostic v0.5.6 => github.com/googleapis/gnostic v0.5.5
 
 // required to drop dependency on deprecated git.apache.org/thrift.git
 exclude go.opencensus.io v0.19.1

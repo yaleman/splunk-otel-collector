@@ -181,7 +181,6 @@ replace k8s.io/klog/v2 => k8s.io/klog/v2 v2.80.1
 // security updates
 replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.6.18
-	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.13.1
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
