@@ -2,6 +2,20 @@
 
 ## unreleased
 
+## chef-v0.10.0
+
+- Initial support for [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js) Auto
+  Instrumentation on Linux (amd64/x86_64 only)
+  - The Node.js SDK is installed and activated by default if the `with_auto_instrumentation` option is set to `true`
+    and the `npm` command is found on the node. Set the `with_auto_instrumentation_sdks` option to only `java` to
+    skip Node.js auto instrumentation.
+  - By default, the Node.js SDK is installed with the `npm install --global` command.
+    - Use the `auto_instrumentation_npm_path` option to specify a custom path for the `npm` command.
+    - Use the `auto_instrumentation_npm_install_options` option to specify custom installation options for `npm`.
+  - **Note:** This recipe does not manage the installation/configuration of Node.js, `npm`, or Node.js applications.
+    Ensure the node and all Node.js applications on the node are pre-configured with access to the global or custom SDK
+    installation path.
+
 ## chef-v0.9.0
 
 - **Deprecations**: The `auto_instrumentation_generate_service_name` and `auto_instrumentation_disable_telemetry`

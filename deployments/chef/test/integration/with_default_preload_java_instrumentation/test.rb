@@ -7,11 +7,23 @@ describe package('splunk-otel-auto-instrumentation') do
   it { should be_installed }
 end
 
+describe npm('@splunk/otel') do
+  it { should_not be_installed }
+end
+
 describe file('/etc/ld.so.preload') do
   its('content') { should match /^#{libsplunk_path}$/ }
 end
 
 describe file('/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf') do
+  it { should_not exist }
+end
+
+describe file('/etc/splunk/zeroconfig/node.conf') do
+  it { should_not exist }
+end
+
+describe file('/usr/lib/splunk-instrumentation/instrumentation.conf') do
   it { should_not exist }
 end
 
