@@ -12,6 +12,7 @@ on:
       - 'deployments/ansible/galaxy.yml'
     branches:
       - main
+      - ansible-new-zeroconfig-test
   pull_request:
     paths:
       - '.github/workflows/ansible.yml'
@@ -168,7 +169,12 @@ jobs:
         run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
       - name: Run Molecule tests.
-        run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
+        run: |
+          molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }} 2>&1 | tee molecule.log
+          if grep 'Failed to start the VM' molecule.log; then
+            sleep 60
+            molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
+          fi
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
