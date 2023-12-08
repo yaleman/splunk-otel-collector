@@ -3,8 +3,8 @@ driver:
   name: dokken
   chef_license: accept
   privileged: true
-  env:
-    - NODE_PATH=/usr/local/nodejs-binary-16.20.2/lib/node_modules  # required for inspec to check for installed packages
+  # env:
+  #  - NODE_PATH=/usr/local/nodejs-binary-16.20.2/lib/node_modules  # required for inspec to check for installed packages
 
 transport:
   name: dokken

@@ -1,6 +1,6 @@
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
 java_tool_options = '-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
-node_options = '-r @splunk/otel/instrument'
+node_options = '-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument'
 resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+'
 otlp_endpoint = 'http://127.0.0.1:4317'
 
@@ -8,7 +8,7 @@ describe package('splunk-otel-auto-instrumentation') do
   it { should be_installed }
 end
 
-describe npm('@splunk/otel') do
+describe npm('@splunk/otel', path: '/usr/lib/splunk-instrumentation/splunk-otel-js') do
   it { should be_installed }
 end
 

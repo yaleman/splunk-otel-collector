@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - chef-node-zc-test
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'

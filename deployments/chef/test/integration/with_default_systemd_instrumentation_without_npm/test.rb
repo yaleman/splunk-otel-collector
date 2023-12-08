@@ -7,7 +7,7 @@ describe package('splunk-otel-auto-instrumentation') do
   it { should be_installed }
 end
 
-describe npm('@splunk/otel') do
+describe npm('@splunk/otel', path: '/usr/lib/splunk-instrumentation/splunk-otel-js') do
   it { should_not be_installed }
 end
 

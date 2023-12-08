@@ -6,8 +6,8 @@ with_systemd = node['splunk_otel_collector']['auto_instrumentation_systemd'].to_
 with_java = node['splunk_otel_collector']['with_auto_instrumentation_sdks'].include?('java')
 with_nodejs = node['splunk_otel_collector']['with_auto_instrumentation_sdks'].include?('nodejs') && with_new_instrumentation
 npm_path = node['splunk_otel_collector']['auto_instrumentation_npm_path']
-npm_options = node['splunk_otel_collector']['auto_instrumentation_npm_install_options']
 splunk_otel_js_path = '/usr/lib/splunk-instrumentation/splunk-otel-js.tgz'
+splunk_otel_js_prefix = '/usr/lib/splunk-instrumentation/splunk-otel-js'
 node.run_state[:with_nodejs] = with_nodejs && shell_out("bash -c 'command -v #{npm_path}'").exitstatus == 0
 
 ohai 'reload packages' do
@@ -15,12 +15,19 @@ ohai 'reload packages' do
   plugin 'packages'
 end
 
+directory splunk_otel_js_prefix do
+  action :nothing
+  recursive true
+  only_if { !with_systemd && node.run_state[:with_nodejs] }
+end
+
 ruby_block 'install splunk-otel-js' do
   action :nothing
   block do
     node.run_state[:with_nodejs] = with_nodejs && shell_out("bash -c 'command -v #{npm_path}'").exitstatus == 0
     if node.run_state[:with_nodejs]
-      shell_out!("#{npm_path} install #{npm_options} #{splunk_otel_js_path}")
+      resources(directory: splunk_otel_js_prefix).run_action(:create)
+      shell_out!("#{npm_path} install --prefix #{splunk_otel_js_prefix} #{splunk_otel_js_path}")
     end
   end
   only_if { with_nodejs }
