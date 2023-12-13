@@ -7,12 +7,8 @@
     splunk_realm: fake-realm
     install_splunk_otel_auto_instrumentation: true
     splunk_otel_auto_instrumentation_systemd: true
-    splunk_otel_auto_instrumentation_resource_attributes: deployment.environment=test
-    splunk_otel_auto_instrumentation_service_name: test
-    splunk_otel_auto_instrumentation_enable_profiler: true
-    splunk_otel_auto_instrumentation_enable_profiler_memory: true
-    splunk_otel_auto_instrumentation_enable_metrics: true
-    splunk_otel_auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+    splunk_otel_auto_instrumentation_sdks:
+      - java
   tasks:
     - name: "Install nodejs for tests"
       ansible.builtin.import_tasks: ../shared/install_nodejs.yml
