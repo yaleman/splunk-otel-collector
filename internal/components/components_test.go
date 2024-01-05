@@ -41,6 +41,7 @@ func TestDefaultComponents(t *testing.T) {
 		"file_storage",
 	}
 	expectedReceivers := []component.Type{
+		"awscontainerinsights",
 		"azureeventhub",
 		"carbon",
 		"cloudfoundry",

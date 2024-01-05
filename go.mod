@@ -52,6 +52,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.91.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.91.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.91.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.91.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azureeventhubreceiver v0.91.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.91.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.91.0
@@ -153,12 +154,21 @@ require (
 	github.com/apache/arrow/go/v12 v12.0.1 // indirect
 	github.com/apache/pulsar-client-go v0.11.0 // indirect
 	github.com/bits-and-blooms/bitset v1.4.0 // indirect
+	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
+	github.com/checkpoint-restore/go-criu/v5 v5.3.0 // indirect
+	github.com/cilium/ebpf v0.7.0 // indirect
+	github.com/containerd/console v1.0.3 // indirect
+	github.com/containerd/ttrpc v1.2.2 // indirect
+	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
+	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/euank/go-kmsg-parser v2.0.0+incompatible // indirect
 	github.com/expr-lang/expr v1.15.6 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/goccy/go-json v0.10.0 // indirect
+	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
@@ -172,9 +182,16 @@ require (
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
+	github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
+	github.com/moby/sys/mountinfo v0.6.2 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/montanaflynn/stats v0.7.0 // indirect
+	github.com/mrunalp/fileutils v0.5.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.91.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/containerinsight v0.91.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/k8s v0.91.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/metrics v0.91.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/collectd v0.91.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kafka v0.91.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.91.0 // indirect
@@ -182,6 +199,8 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.91.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azure v0.91.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.91.0 // indirect
+	github.com/opencontainers/runtime-spec v1.0.3-0.20220909204839-494a5a6aca78 // indirect
+	github.com/opencontainers/selinux v1.10.1 // indirect
 	github.com/ovh/go-ovh v1.4.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/sftp v1.13.6 // indirect
@@ -191,14 +210,18 @@ require (
 	github.com/prometheus/statsd_exporter v0.22.7 // indirect
 	github.com/redis/go-redis/v9 v9.3.0 // indirect
 	github.com/relvacode/iso8601 v1.3.0 // indirect
+	github.com/seccomp/libseccomp-golang v0.9.2-0.20220502022130-f33da4d89646 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/signalfx/golib/v3 v3.3.53 // indirect
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
+	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635 // indirect
 	github.com/tg123/go-htpasswd v1.2.1 // indirect
 	github.com/tilinna/clock v1.1.0 // indirect
 	github.com/twmb/murmur3 v1.1.7 // indirect
+	github.com/vishvananda/netlink v1.1.1-0.20210330154013-f5de75959ad5 // indirect
+	github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.mongodb.org/mongo-driver v1.13.0 // indirect
@@ -225,6 +248,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4 // indirect
+	k8s.io/klog v1.0.0 // indirect
 	sigs.k8s.io/controller-runtime v0.16.3 // indirect
 )
 
