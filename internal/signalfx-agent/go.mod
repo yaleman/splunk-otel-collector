@@ -106,6 +106,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/microsoft/go-mssqldb v1.6.0
 	github.com/smartystreets/goconvey v1.8.1
+	go.opentelemetry.io/collector/pdata v1.0.0
 )
 
 require (
