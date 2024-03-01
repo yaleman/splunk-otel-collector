@@ -21,11 +21,10 @@ jobs:
 
   test:
     name: Test
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        nomad: [ "1.1.0", "1.2.0" ]
+        nomad: [ "1.6.2-1", "1.7.5-1" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
@@ -33,10 +32,10 @@ jobs:
 
       - name: Install Nomad and Consul.
         run: |
-          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add - 
-          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-          sudo apt-get update 
-          sudo apt-get install nomad=${{ matrix.nomad }}
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update
+          sudo apt install nomad=${{ matrix.nomad }}
           sudo apt-get install consul
 
       - name: Validate otel-agent.nomad
@@ -145,62 +144,49 @@ jobs:
             sudo rm /etc/systemd/system/consul.service;
             exit 1;
           fi
-
-      - name: Deploy nomad Jobs.
+      - name: Prepare deployment
         run: |
-          sudo apt-get install net-tools;
-          until nc -w 10 127.0.0.1 4646; do sleep 1; done
           sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-agent.nomad
           sed -i 's/<SPLUNK_REALM>/test/g' otel-agent.nomad
           sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-gateway.nomad
           sed -i 's/<SPLUNK_REALM>/test/g' otel-gateway.nomad
-          nomad run otel-gateway.nomad
-          a=0
-          while [ "$a" -lt 10 ];
-          do
-            if [ $(nomad job status otel-gateway | grep Healthy -A 1 | sed -n 2p | awk '{print $4}') == "1" ];
-            then 
-              echo "Job otel-gateway is running.";
-              break;
-            else 
-              echo "Job otel-gateway is not started yet."
-              sleep 30;
-            fi
-            a=`expr $a + 1`
-          done
-          nomad job stop -purge otel-gateway;
-          if [ "$a" -eq 10 ];
-          then
-            echo "Fail to run otel-gateway job.";
-            exit 1;
-          fi
-          nomad run otel-agent.nomad
-          a=0
-          while [ "$a" -lt 10 ];
-          do
-            if [ $(nomad job status otel-agent | grep Status -A 1 | tail -1 | awk '{print $6}') == "running" ];
-            then 
-              sleep 20
-              if [ $(nomad job status otel-agent | grep Status -A 1 | tail -1 | awk '{print $6}') == "running" ];
-              then
-                echo "Job otel-agent is running.";
-                break;
-              else
-                echo "Job otel-agent is not started yet."
-                sleep 30;
-              fi
-            else 
-              echo "Job otel-agent is not started yet."
-              sleep 30;
-            fi
-            a=`expr $a + 1`
-          done
-          nomad job stop -purge otel-agent;
-          if [ "$a" -eq 10 ];
-          then
-            echo "Fail to run otel-agent job.";
-            exit 1;
-          fi
+          touch config.yaml
+
+      - name: Deploy gateway with Nomad
+        uses: qazz92/nomad-deploy-action@1.0.1
+        with:
+          token: ""
+          address: http://localhost:4646
+          job: otel-gateway.nomad
+          config: config.yaml
+
+      - name: Check deployment result
+        uses: let-sh/nomad-deploy-result-action@v1
+        with:
+          nomad-addr: http://localhost:4646
+          nomad-token: ""
+          nomad-job-name: otel-gateway.nomad
+      - name: Stop gateway
+        run: |
+          nomad job stop -purge otel-gateway
+          
+      - name: Deploy agent with Nomad
+        uses: qazz92/nomad-deploy-action@1.0.1
+        with:
+          token: ""
+          address: http://localhost:4646
+          job: otel-agent.nomad
+          config: config.yaml
+
+      - name: Check deployment result
+        uses: let-sh/nomad-deploy-result-action@v1
+        with:
+          nomad-addr: http://localhost:4646
+          nomad-token: ""
+          nomad-job-name: otel-agent.nomad
+      - name: Stop agent
+        run: |
+          nomad job stop -purge otel-agent
 
       - name: Stop Nomad and Consul Services.
         run: |
